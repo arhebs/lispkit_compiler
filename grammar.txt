@@ -1,0 +1,6 @@
+S-EXPR :- ATOM |
+    ( S-EXPR-SEQ )
+
+S-EXPR-SEQ :- S-EXPR S-EXPR-SEQ | epsilon
+
+ATOM :- number | id
