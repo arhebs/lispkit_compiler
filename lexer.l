@@ -39,7 +39,7 @@
 "("												{ return yy::Parser::make_OP_BR(yy::location()); }
 ")"												{ return yy::Parser::make_CL_BR(yy::location()); }
 [0-9]+											{ return yy::Parser::make_NUM(strtoull(yytext, 0, 10), yy::location()); }
-[a-zA-Z][a-zA-Z0-9_]*(?:\.[a-zA-Z0-9_]+)?		{ return yy::Parser::make_ID(std::string{yytext}, yy::location()); }
+[a-zA-Z][a-zA-Z0-9_]*                       	{ return yy::Parser::make_ID(std::string{yytext}, yy::location()); }
 \n												{ /* ignore newlines */ }
 " "												{ /* ignore space */ }
 <<EOF>>											{ return yyterminate(); }
