@@ -4,12 +4,13 @@ cmake-build-debug
 main
 build
 
-# flex-bison auto-generated files
+# flex-bison generated files
 parser.cpp
 parser.hpp
 location.hh
 position.hh
 stack.hh
+lexer.cpp
 
 # g++ manual build
 a.out
