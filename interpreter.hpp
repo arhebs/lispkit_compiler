@@ -27,7 +27,11 @@ namespace yy {
 class Interpreter
 {
 public:
-    Interpreter();
+    Interpreter() :
+        m_scanner(*this),
+        m_parser(m_scanner, *this),
+        m_location(0)
+    {}
     
     /**
      * Run parser. Results are stored inside.
@@ -39,12 +43,6 @@ public:
      * Clear AST
      */
     void clear();
-    
-    /**
-     * Print AST
-     */
-    std::string str() const;
-    
     /**
      * Switch scanner input stream. Default is standard input (std::cin).
      * It will also reset AST.
@@ -59,9 +57,6 @@ public:
     friend class Scanner;
     
 private:
-    // // Used internally by Parser to insert AST nodes.
-    // void addCommand(const Command &cmd);
-    
     // Used internally by Scanner YY_USER_ACTION to update location indicator
     void increaseLocation(unsigned int loc);
     
@@ -71,7 +66,6 @@ private:
 private:
     Scanner m_scanner;
     Parser m_parser;
-    // std::vector<Command> m_commands;  // Example AST
     unsigned int m_location;          // Used by scanner
 };
 

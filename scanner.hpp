@@ -28,9 +28,9 @@ namespace yy {
 // Forward declare interpreter to avoid include. Header is added inimplementation file.
 class Interpreter; 
     
-class Scanner : public yyFlexLexer {
+class Scanner final : public yyFlexLexer {
 public:
-        Scanner(Interpreter &driver) : m_driver(driver) {}
+    Scanner(Interpreter &driver) : m_driver(driver) {}
 	virtual ~Scanner() {}
 	virtual yy::Parser::symbol_type get_next_token();
         

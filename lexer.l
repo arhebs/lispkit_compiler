@@ -42,6 +42,6 @@
 [a-zA-Z][a-zA-Z0-9_]*(?:\.[a-zA-Z0-9_]+)?		{ return yy::Parser::make_ID(std::string{yytext}, yy::location()); }
 \n												{ /* ignore newlines */ }
 " "												{ /* ignore space */ }
-.												{ cerr << "unknown character" << endl; }
 <<EOF>>											{ return yyterminate(); }
+.												{ cerr << "unknown character" << endl; }
 %%
