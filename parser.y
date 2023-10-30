@@ -13,7 +13,7 @@
     #include <string>
     #include <vector>
     #include <stdint.h>
-    /* #include "command.h" место подключения будущего АСД*/
+    /* место подключения будущего АСД*/
 
     namespace yy {
         class Scanner;
@@ -33,12 +33,6 @@
     static yy::Parser::symbol_type yylex(yy::Scanner &scanner, yy::Interpreter &driver) {
         return scanner.get_next_token();
     }
-
-    // you can accomplish the same thing by inlining the code using preprocessor
-    // x and y are same as in above static function
-    // #define yylex(x, y) scanner.get_next_token()
-
-    using namespace yy;
 }
 
 %lex-param { yy::Scanner &scanner }
@@ -75,11 +69,7 @@ atom: ID | NUM;
 %%
 
 // Bison expects us to provide implementation - otherwise linker complains
-void yy::Parser::error(const location &loc , const std::string &message) {
-        
-        // Location should be initialized inside scanner action, but is not in this example.
-        // Let's grab location directly from driver class.
-	// cout << "Error: " << message << endl << "Location: " << loc << endl;
-	
-        std::cout << "Error: " << message << std::endl << "Error location: " << driver.location() << std::endl;
+void yy::Parser::error(const location &loc, const std::string &message) {
+    std::cout << "Error: " << message << std::endl
+        << "Error location: " << driver.location() << std::endl;
 }
