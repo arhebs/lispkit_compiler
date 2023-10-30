@@ -38,11 +38,6 @@ public:
      * \returns 0 on success, 1 on failure
      */
     int parse();
-    
-    /**
-     * Clear AST
-     */
-    void clear();
     /**
      * Switch scanner input stream. Default is standard input (std::cin).
      * It will also reset AST.

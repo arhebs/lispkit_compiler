@@ -15,7 +15,9 @@ void Interpreter::switchInputStream(std::istream *is) {
 
 void Interpreter::increaseLocation(unsigned int loc) {
     m_location += loc;
+#ifndef NDEBUG
     std::cout << "increaseLocation(): " << loc << ", total = " << m_location << std::endl;
+#endif
 }
 
 unsigned int Interpreter::location() const {
