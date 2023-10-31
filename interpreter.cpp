@@ -6,11 +6,12 @@ using namespace yy;
 
 int Interpreter::parse() {
     m_location = 0;
+    
     return m_parser.parse();
 }
 
-void Interpreter::switchInputStream(std::istream *is) {
-    m_scanner.switch_streams(is, NULL);
+void Interpreter::switchInputStream(std::istream* is) {
+    m_scanner.switch_streams(is, nullptr);
 }
 
 void Interpreter::increaseLocation(unsigned int loc) {

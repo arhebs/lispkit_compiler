@@ -1,0 +1,10 @@
+---
+Checks: "
+        -bugprone*,
+        -cppcoreguidelines*,
+        -clang-analyzer*,
+        -readability*
+"
+WarningsAsErrors: ''
+HeaderFilterRegex: ''
+FormatStyle:     none

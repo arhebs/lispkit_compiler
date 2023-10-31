@@ -42,7 +42,7 @@ public:
      * Switch scanner input stream. Default is standard input (std::cin).
      * It will also reset AST.
      */
-    void switchInputStream(std::istream *is);
+    void switchInputStream(std::istream* is);
     
     /**
      * This is needed so that Scanner and Parser can call some
@@ -66,4 +66,4 @@ private:
 
 }
 
-#endif // INTERPRETER_H
+#endif // INTERPRETER_HPP

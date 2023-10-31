@@ -30,12 +30,12 @@ class Interpreter;
     
 class Scanner final : public yyFlexLexer {
 public:
-    Scanner(Interpreter &driver) : m_driver(driver) {}
+    Scanner(Interpreter& driver) : m_driver(driver) {}
 	virtual ~Scanner() {}
 	virtual yy::Parser::symbol_type get_next_token();
         
 private:
-    Interpreter &m_driver;
+    Interpreter& m_driver;
 };
 
 }
