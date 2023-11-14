@@ -2,6 +2,10 @@
 #define INTERPRETER_HPP
 
 #include <vector>
+#include <memory>
+#include <fstream>
+
+#include "AST.hpp"
 
 #include "scanner.hpp"
 
@@ -30,12 +34,26 @@ public:
     explicit Interpreter(std::istream* inp = nullptr) :
         m_scanner(*this),
         m_parser(m_scanner, *this),
-        m_location(0)
+        m_location(0),
+        m_lineno(0),
+        m_column(0),
+        input_stream(nullptr)
     {
         if(inp != nullptr)
             this->switchInputStream(inp);
     }
-    
+    explicit Interpreter(const std::string& file_name) :
+            m_scanner(*this),
+            m_parser(m_scanner, *this),
+            m_location(0),
+            m_lineno(0),
+            m_column(0),
+            input_stream(new std::ifstream{file_name}),
+            file_name(file_name)
+    {
+        if((*input_stream).good())
+            this->switchInputStream(input_stream.get());
+    }
     /**
      * Run parser. Results are stored inside.
      * \returns 0 on success, 1 on failure
@@ -56,7 +74,9 @@ public:
     
 private:
     // Used internally by Scanner YY_USER_ACTION to update location indicator
-    void increaseLocation(unsigned int loc);
+    void increaseLocation(unsigned int loc, unsigned int lineno);
+
+    void next_line();
     
     // Used to get last Scanner location. Used in error messages.
     unsigned int location() const;
@@ -65,6 +85,11 @@ private:
     Scanner m_scanner;
     Parser m_parser;
     unsigned int m_location;          // Used by scanner
+    unsigned int m_lineno;
+    unsigned int m_column;
+    AST_node AST;
+    std::unique_ptr<std::ifstream> input_stream;
+    std::string file_name = "input";
 };
 
 }

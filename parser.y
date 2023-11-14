@@ -13,7 +13,8 @@
     #include <string>
     #include <vector>
     #include <stdint.h>
-    /* место подключения будущего АСД*/
+    #include "AST.hpp"
+    #include "location.hh"
 
     namespace yy {
         class Scanner;
@@ -52,6 +53,9 @@
 %token OP_BR
 %token CL_BR
 
+%type <AST_node> s_expr
+%type <AST_node> atom
+%type <AST_node> s_expr_seq
 
 %start start
 
@@ -59,19 +63,48 @@
 
 start : s_expr {
     std::cout << "Success" << std::endl;
+    driver.AST = $1;
 }
 
-s_expr : atom
-    | OP_BR s_expr_seq CL_BR;
+s_expr :
+    atom
+    {
+        $$ = $1;
+    }
+    | OP_BR s_expr_seq CL_BR
+    {
+        //check for num of arguments
+        AST_node& current = $2;
+        try{
+            current.check_command_syntax();
+        }
+        catch(const std::runtime_error& err){
+            error(syntax_error{yy::location(), err.what()});
+            std::exit(1);
+        }
+        $$ = $2;
+    };
 
 s_expr_seq :
     /*empty*/
     {
-
+        $$ = AST_node{}; // create list
     }
-    | s_expr s_expr_seq;
+    | s_expr s_expr_seq
+    {
+        $$ = $2.append($1);
+    }
+    ;
 
-atom: ID | NUM;
+atom: ID
+    {
+        $$ = AST_node{$1};
+    }
+    | NUM
+    {
+        $$ = AST_node{$1};
+
+    };
     
 %%
 
