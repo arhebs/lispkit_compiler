@@ -32,12 +32,12 @@ void AST_node::check_command_syntax() {
         auto&& command_trait = find->second;
         if(!command_trait.arg_const_count){
             if (arg_count < command_trait.arguments) {
-                throw std::runtime_error{std::format("Not enough arguments in {} statement. {} or more expected, but {} provided", keyword, command_trait.arguments, arg_count)};
+                throw std::runtime_error{std::format("Arguments error in {} statement. {} or more expected, but {} provided", keyword, command_trait.arguments, arg_count)};
             }
         }
         else{
             if (arg_count != command_trait.arguments)
-                throw std::runtime_error{std::format("Not enough arguments in {} statement. {} expected, but {} provided", keyword, command_trait.arguments, arg_count)};
+                throw std::runtime_error{std::format("Arguments error in {} statement. {} expected, but {} provided", keyword, command_trait.arguments, arg_count)};
         }
         //проверка отдельных ключевых слов
         if(keyword == "LET" || keyword == "LETREC"){

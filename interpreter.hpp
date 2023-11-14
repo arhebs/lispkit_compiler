@@ -77,6 +77,8 @@ private:
     void increaseLocation(unsigned int loc, unsigned int lineno);
 
     void next_line();
+
+    yy::position current_pos();
     
     // Used to get last Scanner location. Used in error messages.
     unsigned int location() const;

@@ -30,6 +30,8 @@
     #include "interpreter.hpp"
     #include "location.hh"
 
+    #define YY_POS ::yy::location{driver.current_pos()}
+
     // yylex() arguments are defined in parser.y
     static yy::Parser::symbol_type yylex(yy::Scanner &scanner, yy::Interpreter &driver) {
         return scanner.get_next_token();
@@ -50,8 +52,8 @@
 //%token END_OF_FILE нам не нужно переизобретать EOF, он сам генерируется бизоном (см. parser.hpp "make_YYEOF")
 %token <std::string> ID
 %token <uint64_t> NUM
-%token OP_BR
-%token CL_BR
+%token OP_BR "("
+%token CL_BR ")"
 
 %type <AST_node> s_expr
 %type <AST_node> atom
@@ -79,8 +81,7 @@ s_expr :
             current.check_command_syntax();
         }
         catch(const std::runtime_error& err){
-            error(syntax_error{yy::location(), err.what()});
-            std::exit(1);
+            error(YY_POS, err.what());
         }
         $$ = $2;
     };
@@ -110,6 +111,7 @@ atom: ID
 
 // Bison expects us to provide implementation - otherwise linker complains
 void yy::Parser::error(const location &loc, const std::string &message) {
-    std::cout << "Error: " << message << std::endl
-        << "Error location: " << driver.location() << std::endl;
+    std::cout << (loc.begin.filename != nullptr ? *loc.begin.filename : "input") << ':' << loc.begin.line << ':' << loc.begin.column
+        << ": error: " << message << std::endl;
 }
+

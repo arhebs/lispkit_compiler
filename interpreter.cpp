@@ -18,7 +18,7 @@ void Interpreter::increaseLocation(unsigned int loc, unsigned int lineno) {
     m_location += loc;
     m_column += loc;
     m_lineno = lineno;
-#ifndef NDEBUG
+#ifdef NDEBUG
     std::cout << "Current position: " << m_location << " symbol, "
         << m_lineno << " line, "
         << m_column << " column" << std::endl;
@@ -31,6 +31,10 @@ void Interpreter::next_line() {
 
 unsigned int Interpreter::location() const {
     return m_location;
+}
+
+yy::position Interpreter::current_pos() {
+    return yy::position{&file_name, static_cast<int>(m_lineno), static_cast<int>(m_column)};
 }
 
 
