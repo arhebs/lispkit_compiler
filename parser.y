@@ -46,22 +46,29 @@
 
 %define api.token.prefix {TOKEN_}
 
-%token END_OF_FILE 
+//%token END_OF_FILE нам не нужно переизобретать EOF, он сам генерируется бизоном (см. parser.hpp "make_YYEOF")
 %token <std::string> ID
 %token <uint64_t> NUM
 %token OP_BR
 %token CL_BR
 
 
-%start s_expr
+%start start
 
 %%
+
+start : s_expr {
+    std::cout << "Success" << std::endl;
+}
 
 s_expr : atom
     | OP_BR s_expr_seq CL_BR;
 
-s_expr_seq : 
+s_expr_seq :
     /*empty*/
+    {
+
+    }
     | s_expr s_expr_seq;
 
 atom: ID | NUM;
