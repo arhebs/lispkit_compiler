@@ -13,6 +13,9 @@ find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 find_package(argparse CONFIG REQUIRED)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTKMM_LIB REQUIRED IMPORTED_TARGET gtkmm-4.0)
+
 set(SRC_FILES interpreter.cpp main_window.cpp
         AST.cpp)
 
@@ -34,4 +37,5 @@ add_executable(lispkit_compiler
 
 target_link_libraries(lispkit_compiler PRIVATE
         argparse::argparse
+        PkgConfig::GTKMM_LIB
 )

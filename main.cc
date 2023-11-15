@@ -8,14 +8,14 @@
 
 int main(int argc, char** argv) {
     argparse::ArgumentParser program{"lispkit_compiler", "0.1"};
+    program.add_argument("file")
+        .help("файл для компиляции")
+        .default_value("")
+        .nargs(1);
     program.add_argument("--gui")
         .help("Запускает программу в режиме графического (почти) интерфейса")
         .default_value(false)
         .implicit_value(true);
-    program.add_argument("file")
-        .help("файл для компиляции")
-        .required()
-        .nargs(1);
     try{
         program.parse_args(argc, argv);
     }
@@ -26,13 +26,14 @@ int main(int argc, char** argv) {
     }
 
     if(program.get<bool>("--gui")){
-//        MainWindow w;
-//        w.loop();
+        auto app = Gtk::Application::create("org.arhebs.lispkit_compiler");
+
+        return app->make_window_and_run<MainWindow>(1, argv);
     }
     else{
         yy::Interpreter i(program.get<std::string>("file"));
         i.parse();
-        std::cout << i.get_AST().to_string() << std::endl;
+        std::cout << i.get_AST().to_string(2) << std::endl;
+        return 0;
     }
-    return 0;
 }

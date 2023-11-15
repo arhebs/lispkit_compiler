@@ -10,8 +10,9 @@ int Interpreter::parse() {
     return m_parser.parse();
 }
 
-void Interpreter::switchInputStream(std::istream* is) {
-    m_scanner.switch_streams(is, nullptr);
+void Interpreter::switch_streams(std::istream* is, std::ostream* os) {
+    output_stream = os;
+    m_scanner.switch_streams(is, os);
 }
 
 void Interpreter::increaseLocation(unsigned int loc, unsigned int lineno) {

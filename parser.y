@@ -32,6 +32,8 @@
 
     #define YY_POS ::yy::location{driver.current_pos()}
 
+    #define OUT (*driver.output_stream)
+
     // yylex() arguments are defined in parser.y
     static yy::Parser::symbol_type yylex(yy::Scanner &scanner, yy::Interpreter &driver) {
         return scanner.get_next_token();
@@ -64,7 +66,7 @@
 %%
 
 start : s_expr {
-    std::cout << "Success" << std::endl;
+    OUT << "Success" << std::endl;
     driver.AST = $1;
 }
 
@@ -111,7 +113,7 @@ atom: ID
 
 // Bison expects us to provide implementation - otherwise linker complains
 void yy::Parser::error(const location &loc, const std::string &message) {
-    std::cout << (loc.begin.filename != nullptr ? *loc.begin.filename : "input") << ':' << loc.begin.line << ':' << loc.begin.column
+    OUT << (loc.begin.filename != nullptr ? *loc.begin.filename : "input") << ':' << loc.begin.line << ':' << loc.begin.column
         << ": error: " << message << std::endl;
 }
 

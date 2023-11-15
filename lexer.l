@@ -10,6 +10,8 @@
 
     #define YY_POS ::yy::location{m_driver.current_pos()}
 
+    #define OUT (*m_driver.output_stream)
+
 
 	// Original yyterminate() macro returns int. Since we're using Bison 3 variants
 	// as tokens, we must redefine it to change type from `int` to `Parser::semantic_type`
@@ -39,6 +41,6 @@
 [a-zA-Z][a-zA-Z0-9_]*                       	{ return yy::Parser::make_ID(std::string{yytext}, YY_POS); }
 \n												{ m_driver.next_line(); }
 " "												{ /* ignore space */ }
-<<EOF>>											{ std::cout<<"EOF"<<std::endl; return yyterminate(); }
-.												{ std::cerr << "unknown character" << std::endl; return yyterminate(); }
+<<EOF>>											{ OUT << "EOF" << std::endl; return yyterminate(); }
+.												{ OUT << "unknown character" << std::endl; return yyterminate(); }
 %%
