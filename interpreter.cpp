@@ -37,4 +37,8 @@ yy::position Interpreter::current_pos() {
     return yy::position{&file_name, static_cast<int>(m_lineno), static_cast<int>(m_column)};
 }
 
+AST_node &Interpreter::get_AST() {
+    return AST;
+}
+
 

@@ -57,3 +57,32 @@ void AST_node::check_command_syntax() {
         }
     }
 }
+
+struct AST_to_string_struct{
+    AST_node* node;
+    int depth;
+    bool is_last = false;
+};
+
+std::string AST_node::to_string(int depth) {
+    if(depth == 0)
+        return std::string{"..."};
+    if(std::holds_alternative<std::string>(this->value))
+        return std::get<std::string>(this->value);
+    else if(std::holds_alternative<num_t>(this->value))
+        return std::to_string(std::get<num_t>(this->value));
+    else{ //std::holds_alternative<AST_node_list>(this->value)
+        std::stringstream ss;
+        auto&& list = std::get<AST_node_list>(this->value);
+        ss << '(';
+        bool first = true;
+        for(auto&& elem : list){
+            if(!first)
+                ss << ' ';
+            ss << elem.to_string(depth - 1);
+            first = false;
+        }
+        ss << ')';
+        return ss.str();
+    }
+}

@@ -32,6 +32,7 @@ int main(int argc, char** argv) {
     else{
         yy::Interpreter i(program.get<std::string>("file"));
         i.parse();
+        std::cout << i.get_AST().to_string() << std::endl;
     }
     return 0;
 }

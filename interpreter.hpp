@@ -71,7 +71,9 @@ public:
      */
     friend class Parser;
     friend class Scanner;
-    
+
+    AST_node& get_AST();
+
 private:
     // Used internally by Scanner YY_USER_ACTION to update location indicator
     void increaseLocation(unsigned int loc, unsigned int lineno);

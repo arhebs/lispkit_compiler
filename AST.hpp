@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <stdexcept>
 #include <format>
+#include <sstream>
 
 #include "location.hh"
 
@@ -23,6 +24,8 @@ struct AST_node{
     AST_node&& append(AST_node node);
 
     void check_command_syntax();
+
+    std::string to_string(int depth = -1);
 
     explicit AST_node(std::string val);
     explicit AST_node(num_t num);
