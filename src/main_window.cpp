@@ -27,6 +27,7 @@ MainWindow::MainWindow() :
     result_window.set_expand();
 
     //вывод дерева трансляции через tree view
+    //TODO rename to 'history'
     AST_buffer = Gtk::TreeStore::create(AST_columns);
     AST_view.set_model(AST_buffer);
     AST_view.append_column("command", AST_columns.operation);
@@ -78,6 +79,7 @@ void MainWindow::on_clear_state_button_clicked() {
 
     execute_button.set_sensitive(true);
     clear_state_button.set_sensitive(false);
+
 }
 
 void MainWindow::fill_AST_buffer() {

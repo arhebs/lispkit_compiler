@@ -43,19 +43,6 @@ public:
         if(inp != nullptr)
             this->switch_streams(inp);
     }
-    explicit Interpreter(const std::string& file_name) :
-            m_scanner(*this),
-            m_parser(m_scanner, *this),
-            m_location(0),
-            m_lineno(0),
-            m_column(0),
-            input_stream(new std::ifstream{file_name}),
-            output_stream(nullptr),
-            file_name(file_name)
-    {
-        if((*input_stream).good())
-            this->switch_streams(input_stream.get());
-    }
     /**
      * Run parser. Results are stored inside.
      * \returns 0 on success, 1 on failure
@@ -66,6 +53,8 @@ public:
      * It will also reset AST.
      */
     void switch_streams(std::istream* is, std::ostream* os = nullptr);
+
+    void set_file_name(const std::string& str);
     
     /**
      * This is needed so that Scanner and Parser can call some
@@ -94,7 +83,7 @@ private:
     unsigned int m_lineno;
     unsigned int m_column;
     AST_node AST;
-    std::unique_ptr<std::istream> input_stream;
+    std::istream* input_stream;
     std::ostream* output_stream;
     std::string file_name = "input";
 };

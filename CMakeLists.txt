@@ -16,13 +16,13 @@ find_package(argparse CONFIG REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTKMM_LIB REQUIRED IMPORTED_TARGET gtkmm-4.0)
 
-set(SRC_FILES interpreter.cpp main_window.cpp
-        AST.cpp)
+set(SRC_FILES src/interpreter.cpp src/main_window.cpp
+        src/AST.cpp)
 
 set(LEXER_OUT "${PARSER_DIR}/lexer.cpp")
 set(PARSER_OUT "${PARSER_DIR}/parser.cpp")
 
-include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 bison_target(PARSER parser.y "${PARSER_OUT}")
 flex_target(LEXER lexer.l "${LEXER_OUT}" DEFINES_FILE "${PARSER_DIR}/lexer.hpp")

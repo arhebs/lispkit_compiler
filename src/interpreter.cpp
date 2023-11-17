@@ -12,6 +12,7 @@ int Interpreter::parse() {
 
 void Interpreter::switch_streams(std::istream* is, std::ostream* os) {
     output_stream = os;
+    input_stream = is;
     m_scanner.switch_streams(is, os);
 }
 
@@ -40,6 +41,10 @@ yy::position Interpreter::current_pos() {
 
 AST_node &Interpreter::get_AST() {
     return AST;
+}
+
+void Interpreter::set_file_name(const std::string &str) {
+    file_name = str;
 }
 
 

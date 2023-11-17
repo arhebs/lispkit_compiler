@@ -31,9 +31,11 @@ int main(int argc, char** argv) {
         return app->make_window_and_run<MainWindow>(1, argv);
     }
     else{
-        yy::Interpreter i(program.get<std::string>("file"));
+        auto&& input_file = program.get<std::string>("file");
+        std::ifstream file_input{input_file};
+        yy::Interpreter i(&file_input);
         i.parse();
-        std::cout << i.get_AST().to_string(2) << std::endl;
+        std::cout << i.get_AST().to_string() << std::endl;
         return 0;
     }
 }
