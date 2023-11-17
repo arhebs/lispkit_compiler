@@ -67,15 +67,11 @@ MainWindow::MainWindow() :
 }
 
 void MainWindow::on_execute_button_clicked() {
-    if(interpreter != nullptr)
-        return;
-    interpreter = new yy::Interpreter{};
-
     auto text = std::string{code_view.get_buffer()->get_text()};
     interpreter_input = std::istringstream{text};
     std::stringstream result;
-    interpreter->switch_streams(&interpreter_input, &result);
-    interpreter->parse();
+    (*interpreter).switch_streams(&interpreter_input, &result);
+    (*interpreter).parse();
     result_view.get_buffer()->set_text(result.str());
 
     execute_button.set_sensitive(false);
@@ -84,19 +80,15 @@ void MainWindow::on_execute_button_clicked() {
 }
 
 void MainWindow::on_clear_state_button_clicked() {
-    if(interpreter == nullptr)
-        return;
-    delete interpreter;
-    interpreter = nullptr;
+    interpreter.restart();
     result_view.get_buffer()->set_text("");
 
     execute_button.set_sensitive(true);
     clear_state_button.set_sensitive(false);
-
 }
 
 void MainWindow::fill_AST_buffer() {
-    AST_node& current = interpreter->get_AST();
+    AST_node& current = (*interpreter).get_AST();
     auto row = *AST_buffer->append();
     if(std::holds_alternative<std::string>(current.value)){
         row[AST_columns.operation] = std::get<std::string>(current.value);

@@ -11,7 +11,7 @@
 
 #include <gtkmm.h>
 
-#include "interpreter.hpp"
+#include "interpreter_manager.hpp"
 
 class MainWindow : public Gtk::Window {
 private:
@@ -31,7 +31,7 @@ protected:
 
     void on_clear_state_button_clicked();
 
-    yy::Interpreter* interpreter = nullptr;
+    yy::interpreter_manager interpreter;
     std::istringstream interpreter_input;
 
     //gui components

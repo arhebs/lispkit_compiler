@@ -17,7 +17,8 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTKMM_LIB REQUIRED IMPORTED_TARGET gtkmm-4.0)
 
 set(SRC_FILES src/interpreter.cpp src/main_window.cpp
-        src/AST.cpp)
+        src/AST.cpp
+        src/interpreter_manager.cpp)
 
 set(LEXER_OUT "${PARSER_DIR}/lexer.cpp")
 set(PARSER_OUT "${PARSER_DIR}/parser.cpp")
