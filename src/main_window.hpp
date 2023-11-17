@@ -37,12 +37,15 @@ protected:
     //gui components
     Gtk::Grid grid;
 
+    Gtk::Paned paned;
+
     Gtk::ScrolledWindow code_window;
     Gtk::TextView code_view;
 
     Gtk::ScrolledWindow result_window;
     Gtk::TextView result_view;
 
+    Gtk::Frame AST_frame;
     Gtk::ScrolledWindow AST_window;
     Gtk::TreeView AST_view;
     Glib::RefPtr<Gtk::TreeStore> AST_buffer;

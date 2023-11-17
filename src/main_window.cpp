@@ -5,6 +5,7 @@
 #include "main_window.hpp"
 
 MainWindow::MainWindow() :
+    paned(Gtk::Orientation::HORIZONTAL),
     execute_button("Запустить"),
     clear_state_button("Сбросить")
 {
@@ -27,7 +28,6 @@ MainWindow::MainWindow() :
     result_window.set_expand();
 
     //вывод дерева трансляции через tree view
-    //TODO rename to 'history'
     AST_buffer = Gtk::TreeStore::create(AST_columns);
     AST_view.set_model(AST_buffer);
     AST_view.append_column("command", AST_columns.operation);
@@ -48,9 +48,22 @@ MainWindow::MainWindow() :
     grid.attach(execute_button, 0, 1);
     grid.attach(clear_state_button, 1, 1);
     grid.attach(result_window, 0, 2, 2, 1);
-    grid.attach(AST_window, 2, 0, 1, 3);
+    //grid.attach(AST_window, 2, 0, 1, 3);
 
-    set_child(grid);
+    //изначально углы скругленные, хочу квадратные
+    Glib::RefPtr<Gtk::CssProvider> refCssProvider;
+    refCssProvider  = Gtk::CssProvider::create();
+    refCssProvider->load_from_data (".squared {border-radius: 0;}");
+    Gtk::StyleContext::add_provider_for_display (
+            Gdk::Display::get_default(), refCssProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
+    AST_frame.set_child(AST_window);
+    AST_frame.add_css_class("squared");
+    AST_frame.set_label("Execution history");
+
+    paned.set_start_child(grid);
+    paned.set_end_child(AST_frame);
+
+    set_child(paned);
 }
 
 void MainWindow::on_execute_button_clicked() {
