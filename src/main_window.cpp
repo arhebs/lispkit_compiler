@@ -35,6 +35,7 @@ MainWindow::MainWindow() :
     AST_window.set_child(AST_view);
     AST_window.set_policy(Gtk::PolicyType::AUTOMATIC, Gtk::PolicyType::AUTOMATIC);
     AST_window.set_expand();
+    AST_window.set_margin(10);
 
     // связывание сигналов-слотов
     execute_button.signal_clicked().connect(
