@@ -1,6 +1,7 @@
 {
   "dependencies": [
     "argparse",
-    "gtkmm"
+    "gtkmm",
+    "pkgconf"
   ]
 }
