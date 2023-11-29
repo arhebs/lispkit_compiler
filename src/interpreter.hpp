@@ -37,6 +37,7 @@ public:
         m_location(0),
         m_lineno(0),
         m_column(0),
+        m_error(false),
         input_stream(nullptr),
         output_stream(nullptr)
     {
@@ -55,6 +56,8 @@ public:
     void switch_streams(std::istream* is, std::ostream* os = nullptr);
 
     void set_file_name(const std::string& str);
+
+    bool is_error();
     
     /**
      * This is needed so that Scanner and Parser can call some
@@ -82,6 +85,7 @@ private:
     unsigned int m_location;          // Used by scanner
     unsigned int m_lineno;
     unsigned int m_column;
+    bool m_error;
     AST_node AST;
     std::istream* input_stream;
     std::ostream* output_stream;

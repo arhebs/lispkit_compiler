@@ -47,4 +47,8 @@ void Interpreter::set_file_name(const std::string &str) {
     file_name = str;
 }
 
+bool Interpreter::is_error() {
+    return m_error;
+}
+
 

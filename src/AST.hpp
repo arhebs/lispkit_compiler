@@ -16,7 +16,7 @@
 
 struct AST_node{
     using AST_node_list = std::list<AST_node>;
-    using num_t = unsigned long long;
+    using num_t = int64_t;
     std::variant<std::string, num_t, AST_node_list> value;
 
     //value should be std::list
@@ -51,7 +51,7 @@ namespace Rules{
         {"REM", {2, true}},
         {"LEQ", {2, true}},
         {"COND", {3, true}},
-        {"LAMBDA", {2, true}},
+        {"LAMBDA", {2, false}},
         {"LET", {2, false}},
         {"LETREC", {2, false}}
     };

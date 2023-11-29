@@ -53,7 +53,7 @@
 
 //%token END_OF_FILE нам не нужно переизобретать EOF, он сам генерируется бизоном (см. parser.hpp "make_YYEOF")
 %token <std::string> ID
-%token <uint64_t> NUM
+%token <int64_t> NUM
 %token OP_BR "("
 %token CL_BR ")"
 
@@ -84,6 +84,7 @@ s_expr :
         }
         catch(const std::runtime_error& err){
             error(YY_POS, err.what());
+            YYABORT;
         }
         $$ = $2;
     };
@@ -115,5 +116,6 @@ atom: ID
 void yy::Parser::error(const location &loc, const std::string &message) {
     OUT << (loc.begin.filename != nullptr ? *loc.begin.filename : "input") << ':' << loc.begin.line << ':' << loc.begin.column
         << ": error: " << message << std::endl;
+    driver.m_error = true;
 }
 

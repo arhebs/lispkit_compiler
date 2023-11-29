@@ -73,11 +73,17 @@ void MainWindow::on_execute_button_clicked() {
     std::stringstream result;
     (*interpreter).switch_streams(&interpreter_input, &result);
     (*interpreter).parse();
-    result_view.get_buffer()->set_text(result.str());
-
-    execute_button.set_sensitive(false);
-    clear_state_button.set_sensitive(true);
-    fill_AST_buffer();
+    if((*interpreter).is_error()){
+        result_view.get_buffer()->set_text(result.str());
+        interpreter.restart();
+    }
+    else{
+        result << "Generated from AST: " << (*interpreter).get_AST().to_string() << std::endl;
+        result_view.get_buffer()->set_text(result.str());
+        execute_button.set_sensitive(false);
+        clear_state_button.set_sensitive(true);
+        fill_AST_buffer();
+    }
 }
 
 void MainWindow::on_clear_state_button_clicked() {
