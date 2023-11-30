@@ -4,6 +4,8 @@
 #include <vector>
 #include <memory>
 #include <fstream>
+#include <unordered_map>
+#include <functional>
 
 #include "AST.hpp"
 
@@ -31,19 +33,7 @@ namespace yy {
 class Interpreter
 {
 public:
-    explicit Interpreter(std::istream* inp = nullptr) :
-        m_scanner(*this),
-        m_parser(m_scanner, *this),
-        m_location(0),
-        m_lineno(0),
-        m_column(0),
-        m_error(false),
-        input_stream(nullptr),
-        output_stream(nullptr)
-    {
-        if(inp != nullptr)
-            this->switch_streams(inp);
-    }
+    explicit Interpreter(std::istream* inp = nullptr);
     /**
      * Run parser. Results are stored inside.
      * \returns 0 on success, 1 on failure
@@ -68,6 +58,8 @@ public:
 
     AST_node& get_AST();
 
+    void execute();
+
 private:
     // Used internally by Scanner YY_USER_ACTION to update location indicator
     void increaseLocation(unsigned int loc, unsigned int lineno);
@@ -78,18 +70,26 @@ private:
     
     // Used to get last Scanner location. Used in error messages.
     unsigned int location() const;
+
+    AST_node execute(AST_node& current, std::unordered_map<std::string, AST_node> context);
+
+    std::runtime_error report_runtime_error(std::string command, AST_node& node, std::string error_description);
     
 private:
+    using command = std::function<AST_node(AST_node&, std::unordered_map<std::string, AST_node>)>;
+    using context_t = std::unordered_map<std::string, AST_node>;
     Scanner m_scanner;
     Parser m_parser;
     unsigned int m_location;          // Used by scanner
     unsigned int m_lineno;
     unsigned int m_column;
+    std::unordered_map<std::string, command> functions;
     bool m_error;
     AST_node AST;
     std::istream* input_stream;
     std::ostream* output_stream;
     std::string file_name = "input";
+
 };
 
 }

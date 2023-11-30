@@ -94,9 +94,9 @@ s_expr_seq :
     {
         $$ = AST_node{}; // create list
     }
-    | s_expr s_expr_seq
+    | s_expr_seq s_expr
     {
-        $$ = $2.append($1);
+        $$ = $1.append($2);
     }
     ;
 
@@ -107,7 +107,6 @@ atom: ID
     | NUM
     {
         $$ = AST_node{$1};
-
     };
     
 %%

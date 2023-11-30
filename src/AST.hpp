@@ -24,11 +24,27 @@ struct AST_node{
 
     void check_command_syntax();
 
-    std::string to_string(int depth = -1);
+    std::string print_tree(int depth = -1);
+
+    num_t& to_num();
+    bool is_num();
+
+    std::string& to_string();
+    bool is_string();
+
+    AST_node_list& to_list();
+    bool is_list();
 
     explicit AST_node(std::string val);
     explicit AST_node(num_t num);
     explicit AST_node(); // list
+
+#undef TRUE
+#undef FALSE
+    static AST_node TRUE();
+    static AST_node FALSE();
+
+
 };
 
 namespace Rules{

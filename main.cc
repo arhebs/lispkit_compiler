@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
         std::ifstream file_input{input_file};
         yy::Interpreter i(&file_input);
         i.parse();
-        std::cout << i.get_AST().to_string() << std::endl;
+        std::cout << i.get_AST().print_tree() << std::endl;
         return 0;
     }
 }

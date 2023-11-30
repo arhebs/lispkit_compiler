@@ -13,7 +13,7 @@ AST_node::AST_node() : value(AST_node_list{})
 {}
 
 AST_node&& AST_node::append(AST_node node) {
-    std::get<AST_node_list>(value).push_front(node);
+    std::get<AST_node_list>(value).push_back(std::move(node));
     return std::move(*this);
 }
 
@@ -64,7 +64,7 @@ struct AST_to_string_struct{
     bool is_last = false;
 };
 
-std::string AST_node::to_string(int depth) {
+std::string AST_node::print_tree(int depth) {
     if(depth == 0)
         return std::string{"..."};
     if(std::holds_alternative<std::string>(this->value))
@@ -79,10 +79,39 @@ std::string AST_node::to_string(int depth) {
         for(auto&& elem : list){
             if(!first)
                 ss << ' ';
-            ss << elem.to_string(depth - 1);
+            ss << elem.print_tree(depth - 1);
             first = false;
         }
         ss << ')';
         return ss.str();
     }
+}
+
+AST_node::num_t& AST_node::to_num(){
+    return std::get<num_t>(value);
+}
+bool AST_node::is_num(){
+    return std::holds_alternative<num_t>(value);
+}
+
+std::string& AST_node::to_string(){
+    return std::get<std::string>(value);
+}
+bool AST_node::is_string(){
+    return std::holds_alternative<std::string>(value);
+}
+
+AST_node::AST_node_list& AST_node::to_list(){
+    return std::get<AST_node_list>(value);
+}
+bool AST_node::is_list(){
+    return std::holds_alternative<AST_node_list>(value);
+}
+
+AST_node AST_node::TRUE() {
+    return AST_node("TRUE");
+}
+
+AST_node AST_node::FALSE() {
+    return AST_node("FALSE");
 }
