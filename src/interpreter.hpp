@@ -2,6 +2,8 @@
 #define INTERPRETER_HPP
 
 #include <vector>
+#include <set>
+#include <algorithm>
 #include <memory>
 #include <fstream>
 #include <unordered_map>
@@ -61,6 +63,8 @@ public:
     void execute();
 
 private:
+    using command = std::function<AST_node(AST_node&, std::unordered_map<std::string, AST_node>)>;
+    using context_t = std::unordered_map<std::string, AST_node>;
     // Used internally by Scanner YY_USER_ACTION to update location indicator
     void increaseLocation(unsigned int loc, unsigned int lineno);
 
@@ -73,11 +77,13 @@ private:
 
     AST_node execute(AST_node& current, std::unordered_map<std::string, AST_node> context);
 
+    bool is_existing_symbol(const std::string& symbol, const context_t& context);
+
     std::runtime_error report_runtime_error(std::string command, AST_node& node, std::string error_description);
+
+    void report_runtime_warning(std::string command, AST_node& node, std::string error_description);
     
 private:
-    using command = std::function<AST_node(AST_node&, std::unordered_map<std::string, AST_node>)>;
-    using context_t = std::unordered_map<std::string, AST_node>;
     Scanner m_scanner;
     Parser m_parser;
     unsigned int m_location;          // Used by scanner

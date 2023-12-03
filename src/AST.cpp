@@ -52,6 +52,9 @@ void AST_node::check_command_syntax() {
                     auto&& elem_list = std::get<AST_node_list>(elem.value);
                     if(elem_list.size() != 2)
                         throw std::runtime_error{std::format("Error in {} argument, arg {} should be pair", keyword, arg)};
+                    //плюс проверка на то, что первый элемент должен быть строкой
+                    if(!elem_list.front().is_string())
+                        throw std::runtime_error{std::format("Error in {} argument, arg {}: name of symbol should be a string", keyword, arg)};
                 }
             }
         }

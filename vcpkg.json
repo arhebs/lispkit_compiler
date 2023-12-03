@@ -1,4 +1,6 @@
 {
+  "name": "lispkit-compiler",
+  "version": "0.1",
   "dependencies": [
     "argparse",
     "gtkmm"

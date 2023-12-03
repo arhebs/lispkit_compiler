@@ -299,36 +299,167 @@ Interpreter::Interpreter(std::istream *inp)  :
             else{
                 return this->execute(false_branch, context);
             }
+        }},
+        /**
+         * (LAMBDA (A B) (что то, что использует А Б))
+         * должна преобразовать себя в вид ((аргументы)(тело))
+         * тоесть просто удалить слово лямбда
+         */
+        {"LAMBDA", [this](AST_node& node, context_t context) ->AST_node {
+            auto&& list = node.to_list();
+            list.erase(list.begin());
+            return node;
+        }},
+        /**
+         * предназначение: регистрация переменных в контекст
+         * принцип работы:
+         * (LET (TEST A B) (TEST (LAMBDA (BC) (какие то действия)) (A ()) (B ()))))
+         * 1. получить сигнатуру вызываемой функции (test a b)
+         * 2. сохранить в контекст значения этих символов (исполнить их)
+         * 3. послать сигнатуру функции на исполнение (в execute уже символы разыменуются)
+         */
+        {"LET", [this](AST_node& node, context_t context) -> AST_node{
+            auto&& list = node.to_list();
+            auto iterator = list.begin(); ++iterator;
+            auto&& function = *iterator;
+            if(!function.is_list()){
+                throw report_runtime_error("LET", node, "function declaration should be a list");
+            }
+            auto&& function_list = function.to_list(); ++iterator;
+            auto requered_symbols = std::set<std::string>{};
+            for(auto&& symbol : function_list){
+                if(!symbol.is_string())
+                    throw report_runtime_error("LET", node, "character definition must be a string");
+                requered_symbols.insert(symbol.to_string());
+            }
+            auto registrated_symbols = std::set<std::string>{};
+            for(; iterator != list.end(); ++iterator) {
+                //здесь гарантировано, что будут пары строка-(s-expr)
+                auto &&current = *iterator;
+                auto &&current_list = current.to_list();
+                auto &&symbol_name = current_list.front().to_string();
+                auto &&symbol_definition = current_list.back();
+                auto symbol_value = this->execute(symbol_definition, context);
+                context.insert({symbol_name, symbol_value});
+                registrated_symbols.insert(symbol_name);
+            }
+            auto missing_symbols = std::set<std::string>{};
+            std::set_difference(requered_symbols.begin(), requered_symbols.end(),
+                                registrated_symbols.begin(), registrated_symbols.end(),
+                                std::inserter(missing_symbols, missing_symbols.begin()));
+            if(!missing_symbols.empty()){
+                throw report_runtime_error("LET", node, "Not all symbols declared");
+            }
+            auto extra_symbols = std::set<std::string>{};
+
+            std::set_difference(registrated_symbols.begin(), registrated_symbols.end(),
+                                requered_symbols.begin(), requered_symbols.end(),
+                                std::inserter(extra_symbols, extra_symbols.begin()));
+            if(!extra_symbols.empty()){
+                report_runtime_warning("LET", node, "extra symbol have been declared");
+            }
+            return this->execute(function, context);
+
         }}
     };
 }
 
-AST_node Interpreter::execute(AST_node& current, context_t context) {
-    if(!std::holds_alternative<AST_node::AST_node_list>(current.value)){
-        throw std::runtime_error("Trying to execute atomic value");
-    }
-    auto&& list = std::get<AST_node::AST_node_list>(current.value);
-    if(list.empty())
-        throw std::runtime_error("Trying to execute empty list");
-    auto&& command = *list.begin();
-    if(!std::holds_alternative<std::string>(command.value))
-        throw std::runtime_error("Command in not a string");
-    auto&& cmd_string = std::get<std::string>(command.value);
+/** (A B C)
+ * на вход подается с-выражение
+ * 1. если это переменная (строка), то ищем ее в контексте
+ *    нашли - вернули, не нашли - эррор
+ * 2. если это число (у конюховой возвращается число), то ошибка
+ * 3. если это список, то это вызов функции
+ * 3.1 получаем имя вызываемой функции
+ * 3.2 если это библиотечная функция (в мапе functions), то вызываем ее
+ * 3.3 если нет, то тогда ищем её определение в контексте
+ * 3.4 нашли функцию, составлям для нее локальный контекст и исполняем
+ */
 
-    auto find_command = functions.find(cmd_string);
-    if(find_command != functions.end()){
-        //нашли функцию - выполняем
-        return (*find_command).second(current, context);
-    }
-    else {
-        //попытка найти имя в текущем контексте
-        auto find_context = context.find(cmd_string);
-        if(find_context != context.end()){
-            //найдено в контексте
-            return find_context->second;
+AST_node Interpreter::execute(AST_node& current, context_t context) {
+    if(current.is_num())
+        throw report_runtime_error("Execution", current, std::format("using undeclared symbol {}", current.to_num()));
+    else if(current.is_string()){
+        auto context_find = context.find(current.to_string());
+        if(context_find == context.end()){ // не нашли
+            throw report_runtime_error("Execution", current, std::format("using undeclared symbol {}", current.to_string()));
         }
-        else
-            throw std::runtime_error("Cant resolve symbol");
+        else{
+            return (*context_find).second;
+        }
+    }
+    else{ // если список
+        auto&& list = current.to_list();
+        //первый элемент должен быть названием функции
+        if(!list.front().is_string()){
+            throw report_runtime_error("Execution", current, "function name must be a string");
+        }
+        auto&& function_name = list.front().to_string();
+        // поиск функции в библиотечных
+        auto default_find = functions.find(function_name);
+        if(default_find != functions.end()){ //если функция библиотечная
+            return default_find->second(current, context);
+        }
+        //если не нашли, тогда ищем в контексте
+        auto context_find = context.find(function_name);
+        if(context_find != context.end()){
+            auto&& function_value = context_find->second;
+            /**
+             * функция должна к нам попадать вида
+             * (
+             *  (аргументы)
+             *  (тело)
+             * )
+             * тогда мы создаем для нее локальный контекст и вызываем тело с ним
+             */
+            //очевидно, что функция должна быть списком
+            if(!function_value.is_list()){
+                throw report_runtime_error("Execution", current, "wrong function declaration"); // TODO улучшить тексты ошибок
+            }
+            auto&& function_value_list = function_value.to_list();
+            //должно быть 2 аргумента
+            if(function_value_list.size() != 2){
+                throw report_runtime_error("Execution", current, "wrong function declaration");
+            }
+            auto&& function_arguments_decl = function_value_list.front();
+            auto&& function_body = function_value_list.back();
+            //они должны быть списками
+            if(!function_arguments_decl.is_list()){
+                throw report_runtime_error("Execute", current, "function argument declaration must be list");
+            }
+            if(!function_arguments_decl.is_list()){
+                throw report_runtime_error("Execute", current, "function body declaration must be list");
+            }
+            auto&& arguments_list = function_arguments_decl.to_list();
+            auto&& body_list = function_body.to_list();
+
+            //проверка на количество аргументов вызываемой функции
+            auto&& declarated_arg_count = arguments_list.size();
+            auto&& given_arg_count = list.size() - 1;
+            if(declarated_arg_count != given_arg_count){
+                throw report_runtime_error("Execution", current, "Argument Count Mismatch Error: "
+                                                                 "The number of arguments passed must match the number of "
+                                                                 "required arguments in the function");
+
+            }
+            //создание локального контекста
+            context_t local_context;
+            auto list_iterator = list.begin(); ++list_iterator; //итератор по значениям аргументов
+            for(auto&& argument : arguments_list){
+                //аргумент должен быть строкой
+                if(!argument.is_string())
+                    throw report_runtime_error("Execution", current, "argument must be string");
+                auto&& argument_str = argument.to_string();
+                auto argument_value = this->execute(*list_iterator, context);
+                local_context.insert({argument_str, argument_value});
+                ++list_iterator;
+            }
+            //исполнение тела функции в соответствии с локальным контекстом
+            return this->execute(function_body, local_context);
+        }
+        else{
+            throw report_runtime_error("Execute", current, std::format("using undeclared symbol {}", current.to_string()));
+        }
     }
 }
 
@@ -348,5 +479,21 @@ Interpreter::report_runtime_error(std::string command, AST_node &node, std::stri
     std::stringstream error_str;
     error_str << "Error in " << command << " expression '" << node.print_tree(3) << "' - " << error_description << std::endl;
     return std::runtime_error(error_str.str());
+}
+
+void Interpreter::report_runtime_warning(std::string command, AST_node &node, std::string error_description) {
+    std::stringstream error_str;
+    (*output_stream) << "Warning in " << command << " expression '" << node.print_tree(3) << "' - " << error_description << std::endl;
+}
+
+bool Interpreter::is_existing_symbol(const std::string &symbol, const context_t& context) {
+    if(functions.contains(symbol)){
+        return true;
+    }
+    else if(context.contains(symbol)){
+        return true;
+    }
+    else
+        return false;
 }
 
