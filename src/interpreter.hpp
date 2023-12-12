@@ -8,6 +8,7 @@
 #include <fstream>
 #include <unordered_map>
 #include <functional>
+#include <stack>
 
 #include "AST.hpp"
 
@@ -62,6 +63,9 @@ public:
 
     void execute();
 
+    void execute_secd();
+
+    bool check_number_of_arguments;
 private:
     using command = std::function<AST_node(AST_node&, std::unordered_map<std::string, AST_node>)>;
     using context_t = std::unordered_map<std::string, AST_node>;
@@ -77,12 +81,13 @@ private:
 
     AST_node execute(AST_node& current, std::unordered_map<std::string, AST_node> context);
 
+    AST_node execute_secd_internal();
+
     bool is_existing_symbol(const std::string& symbol, const context_t& context);
 
     std::runtime_error report_runtime_error(std::string command, AST_node& node, std::string error_description);
 
     void report_runtime_warning(std::string command, AST_node& node, std::string error_description);
-    
 private:
     Scanner m_scanner;
     Parser m_parser;
@@ -95,7 +100,6 @@ private:
     std::istream* input_stream;
     std::ostream* output_stream;
     std::string file_name = "input";
-
 };
 
 }

@@ -29,7 +29,7 @@ public:
 protected:
     void on_execute_button_clicked();
 
-    void on_clear_state_button_clicked();
+    void on_execute_secd_button_clicked();
 
     yy::interpreter_manager interpreter;
     std::istringstream interpreter_input;
@@ -52,7 +52,7 @@ protected:
     ast_model_columns AST_columns;
 
     Gtk::Button execute_button;
-    Gtk::Button clear_state_button;
+    Gtk::Button execute_secd_button;
 
 private:
     void fill_AST_buffer();

@@ -76,6 +76,7 @@ Interpreter::Interpreter(std::istream *inp)  :
         m_lineno(0),
         m_column(0),
         m_error(false),
+        check_number_of_arguments(true),
         input_stream(nullptr),
         output_stream(nullptr)
 {
@@ -414,7 +415,7 @@ AST_node Interpreter::execute(AST_node& current, context_t context) {
              */
             //очевидно, что функция должна быть списком
             if(!function_value.is_list()){
-                throw report_runtime_error("Execution", current, "wrong function declaration"); // TODO улучшить тексты ошибок
+                throw report_runtime_error("Execution", current, "wrong function declaration");
             }
             auto&& function_value_list = function_value.to_list();
             //должно быть 2 аргумента
@@ -458,7 +459,7 @@ AST_node Interpreter::execute(AST_node& current, context_t context) {
             return this->execute(function_body, local_context);
         }
         else{
-            throw report_runtime_error("Execute", current, std::format("using undeclared symbol {}", current.to_string()));
+            throw report_runtime_error("Execute", current, std::format("using undeclared symbol {}", function_name));
         }
     }
 }
@@ -468,7 +469,7 @@ void Interpreter::execute() {
         auto result = this->execute(AST, {});
         (*output_stream) << result.print_tree() << std::endl;
     }
-    catch(const std::runtime_error& err){
+    catch(std::runtime_error& err){
         (*output_stream) << "Execution error: " << err.what() << std::endl;
         m_error = true;
     }
@@ -495,5 +496,305 @@ bool Interpreter::is_existing_symbol(const std::string &symbol, const context_t&
     }
     else
         return false;
+}
+
+void Interpreter::execute_secd(){
+    try{
+        auto result = execute_secd_internal();
+        for(auto&& elem : result.to_list()){
+            (*output_stream) << elem.print_tree() << ' ';
+        }
+        (*output_stream) << std::endl;
+    }
+    catch(std::runtime_error& err){
+        (*output_stream) << "Execution error: " << err.what() << std::endl;
+        m_error = true;
+    }
+}
+
+AST_node Interpreter::execute_secd_internal() {
+    if(!AST.is_list()){
+        throw report_runtime_error("SECD", AST, "");
+    }
+    auto commands = AST;
+    auto stack_node = AST_node{};
+    auto enviroment = AST_node{};
+    auto dump_node = AST_node{};
+    //secd - stack, enviroment, command, dump
+    while(true){
+        if(!stack_node.is_list()){
+            throw std::runtime_error("SECD cant execute - stack is corrupted");
+        }
+        auto&& stack = stack_node.to_list();
+        if(!dump_node.is_list()){
+            throw std::runtime_error("SECD cant execute - dump is corrupted");
+        }
+        auto&& dump = dump_node.to_list();
+        if(!commands.is_list()){
+            throw std::runtime_error("SECD cant execute - commands is corrupted");
+        }
+        auto&& command_list = commands.to_list();
+        auto current = command_list.front();
+        if(!current.is_string()){
+            throw report_runtime_error("SECD", current, "command should be string");
+        }
+        auto command = current.to_string();
+        if(command_list.empty()){
+            throw std::runtime_error("SECD - The command stack is empty. Please check the program flow.");
+        }
+        command_list.erase(command_list.begin());
+        if(command == "STOP"){
+            return stack_node;
+        }
+        else if(command == "ADD"){
+            auto left = stack.front();
+            stack.erase(stack.begin());
+            auto right = stack.front();
+            stack.erase(stack.begin());
+            if(!left.is_num() || !right.is_num()){
+                throw report_runtime_error("SECD", current, "arguments should be numbers");
+            }
+            right.to_num() += left.to_num();
+            stack.push_front(right);
+        }
+        else if(command == "SUB"){
+            auto left = stack.front();
+            stack.erase(stack.begin());
+            auto right = stack.front();;
+            stack.erase(stack.begin());;
+            if(!left.is_num() || !right.is_num()){
+                throw report_runtime_error("SECD", current, "arguments should be numbers");
+            }
+            right.to_num() -= left.to_num();
+            stack.push_front(right);
+        }
+        else if(command == "MUL"){
+            auto left = stack.front();;
+            stack.erase(stack.begin());;
+            auto right = stack.front();;
+            stack.erase(stack.begin());;
+            if(!left.is_num() || !right.is_num()){
+                throw report_runtime_error("SECD", current, "arguments should be numbers");
+            }
+            left.to_num() *= right.to_num();
+            stack.push_front(left);
+        }
+        else if(command == "DIVE"){
+            auto left = stack.front();;
+            stack.erase(stack.begin());;
+            auto right = stack.front();;
+            stack.erase(stack.begin());;
+            if(!left.is_num() || !right.is_num()){
+                throw report_runtime_error("SECD", current, "arguments should be numbers");
+            }
+            right.to_num() /= left.to_num();
+            stack.push_front(right);
+        }
+        else if(command == "REM"){
+            auto left = stack.front();;
+            stack.erase(stack.begin());;
+            auto right = stack.front();;
+            stack.erase(stack.begin());;
+            if(!left.is_num() || !right.is_num()){
+                throw report_runtime_error("SECD", current, "arguments should be numbers");
+            }
+            right.to_num() %= left.to_num();
+            stack.push_front(right);
+        }
+        else if(command == "LEQ"){
+            auto left = stack.front();;
+            stack.erase(stack.begin());;
+            auto right = stack.front();;
+            stack.erase(stack.begin());;
+            if(!left.is_num() || !right.is_num()){
+                throw report_runtime_error("SECD", current, "arguments should be numbers");
+            }
+            if(right.to_num() <= left.to_num()){
+                stack.push_front(AST_node::TRUE());
+            }
+            else{
+                stack.push_front(AST_node::FALSE());
+            }
+        }
+        else if(command == "EQ"){
+            auto left = stack.front();;
+            stack.erase(stack.begin());;
+            auto right = stack.front();;
+            stack.erase(stack.begin());;
+            if(left.is_list() && right.is_list()){
+                throw report_runtime_error("SECD", current, "both arguments cant be lists");
+            }
+            if(left.value.index() != right.value.index()){
+                stack.push_front(AST_node::FALSE());
+            }
+            if(left.is_num()){
+               if(left.to_num() == right.to_num())
+                   stack.push_front(AST_node::TRUE());
+               else
+                   stack.push_front(AST_node::FALSE());
+            }
+            else if(left.is_string()){
+                if(left.to_string() == right.to_string())
+                    stack.push_front(AST_node::TRUE());
+                else
+                    stack.push_front(AST_node::FALSE());
+            }
+        }
+        else if(command == "LDC"){
+            auto constant = command_list.front();
+            command_list.erase(command_list.begin());
+            stack.push_front(constant);
+        }
+        else if(command == "ATOM"){
+            auto atom = stack.front();;
+            stack.erase(stack.begin());;
+            if(atom.is_list())
+                stack.push_front(AST_node::FALSE());
+            else
+                stack.push_front(AST_node::TRUE());
+        }
+        else if(command == "CONS"){
+            auto a = stack.front();;
+            stack.erase(stack.begin());;
+            auto b = stack.front();;
+            stack.erase(stack.begin());;
+            if(!b.is_list()){
+                throw report_runtime_error("SECD CONS", current, "SECD CONS second argument must be list");
+            }
+            b.to_list().push_front(a);
+            stack.push_front(b);
+        }
+        else if(command == "CAR"){
+            auto list_node = stack.front();;
+            stack.erase(stack.begin());;
+            if(!list_node.is_list()){
+                throw report_runtime_error("SECD CAR", current, "CAR argument must be list");
+            }
+            auto&& list = list_node.to_list();
+            stack.push_front(list.front());
+        }
+        else if(command == "CDR"){
+            auto list_node = stack.front();;
+            stack.erase(stack.begin());;
+            if(!list_node.is_list()){
+                throw report_runtime_error("SECD CDR", current, "CDR argument must be list");
+            }
+            auto&& list = list_node.to_list();
+            list.erase(list.begin());
+            stack.push_front(list_node);
+        }
+        else if(command == "LDF"){
+            auto function = command_list.front();
+            command_list.erase(command_list.begin());
+            auto closure = AST_node{};
+            closure.to_list().push_front(function);
+            closure.to_list().push_back(enviroment);
+            stack.push_front(closure);
+        }
+        else if(command == "LD"){
+            auto index_pair = command_list.front();
+            command_list.erase(command_list.begin());
+            if(!index_pair.is_list()){
+                throw report_runtime_error("SECD LD", current, "index pair must be list");
+            }
+            auto&& index_list = index_pair.to_list();
+            if(index_list.size() != 2){
+                throw report_runtime_error("SECD LD", current, "index part must be pair");
+            }
+            auto x = index_list.front();
+            auto y = index_list.back();
+            if(!x.is_num() || !y.is_num()){
+                throw report_runtime_error("SECD LD", current, "indexes must be numeric value");
+            }
+            auto&& x_num = x.to_num();
+            auto&& y_num = y.to_num();
+
+            auto&& enviroment_list = enviroment.to_list();
+
+            if(enviroment_list.size() < (x_num + 1)){
+                throw report_runtime_error("SECD LD", current, "cant find");
+            }
+            auto first_iterator = enviroment_list.begin();
+            std::advance(first_iterator, x_num);
+            auto&& first = *first_iterator;
+            if(!first.is_list()){
+                throw report_runtime_error("SECD LD", current, "лень писать ошибку");
+            }
+            auto&& first_list = first.to_list();
+
+            if(first_list.size() < (y_num + 1)){
+                throw report_runtime_error("SECD LD", current, "cand find 2");
+            }
+            auto second_iterator = first_list.begin();
+            std::advance(second_iterator, y_num);
+            stack.push_front(*second_iterator);
+        }
+        else if(command == "SEL"){
+            auto true_branch = command_list.front();
+            command_list.erase(command_list.begin());
+            auto false_branch = command_list.front();
+            command_list.erase(command_list.begin());
+
+            auto condition = stack.front();;
+            stack.erase(stack.begin());;
+
+            if(!condition.is_string()){
+                throw report_runtime_error("SECD SEL", current, "condition must be boolean");
+            }
+            auto&& cond_value = condition.to_string();
+            dump.push_front(commands);
+            if(cond_value == "TRUE"){
+                commands = true_branch;
+            }
+            else if(cond_value == "FALSE"){
+                commands = false_branch;
+            }
+            else{
+                throw report_runtime_error("SECD SEL", current, "condition must be boolean");
+            }
+        }
+        else if(command == "JOIN"){
+            commands = dump.front();
+            dump.erase(dump.begin());
+        }
+        else if(command == "AP"){
+            auto closure = stack.front();
+            stack.erase(stack.begin());
+            auto additional_env = stack.front();
+            stack.erase(stack.begin());
+            if(!closure.is_list()){
+                throw report_runtime_error("SECD AP", current, "closure must be list");
+            }
+            auto&& closure_list = closure.to_list();
+            if(closure_list.size() != 2){
+                throw report_runtime_error("SECD AP", current, "closure list size must be 2");
+            }
+            auto&& code = closure_list.front();
+            auto&& env = closure_list.back();
+
+            dump.push_front(stack_node);
+            dump.push_front(enviroment);
+            dump.push_front(commands);
+
+            enviroment = env;
+            enviroment.to_list().push_front(additional_env);
+            commands = code;
+        }
+        else if(command == "RTN"){
+            auto ret = stack.front();
+            stack.erase(stack.begin());
+            commands = dump.front();
+            dump.erase(dump.begin());
+            enviroment = dump.front();
+            dump.erase(dump.begin());
+            stack_node = dump.front();
+            dump.erase(dump.begin());
+            if(!stack_node.is_list()){
+                throw report_runtime_error("SECD RET", current, "cant return from function - stack corrupted");
+            }
+            auto&& stack = stack_node.to_list();
+            stack.push_front(ret);
+        }
+    }
 }
 

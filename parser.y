@@ -79,12 +79,14 @@ s_expr :
     {
         //check for num of arguments
         AST_node& current = $2;
-        try{
-            current.check_command_syntax();
-        }
-        catch(const std::runtime_error& err){
-            error(YY_POS, err.what());
-            YYABORT;
+        if(driver.check_number_of_arguments){
+            try{
+                current.check_command_syntax();
+            }
+            catch(const std::runtime_error& err){
+                error(YY_POS, err.what());
+                YYABORT;
+            }
         }
         $$ = $2;
     };

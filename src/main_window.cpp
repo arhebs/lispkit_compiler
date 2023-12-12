@@ -5,11 +5,11 @@
 #include "main_window.hpp"
 
 MainWindow::MainWindow() :
-    paned(Gtk::Orientation::HORIZONTAL),
-    execute_button("Запустить"),
-    clear_state_button("Сбросить")
+        paned(Gtk::Orientation::HORIZONTAL),
+        execute_button("Запустить интерпретатор"),
+        execute_secd_button("Запустить SECD-машину")
 {
-    set_title("Basic application");
+    set_title("Lispkit compiler");
     set_default_size(800, 600);
 
     grid.set_margin(10);
@@ -40,14 +40,13 @@ MainWindow::MainWindow() :
     // связывание сигналов-слотов
     execute_button.signal_clicked().connect(
             sigc::mem_fun(*this, &MainWindow::on_execute_button_clicked));
-    clear_state_button.signal_clicked().connect(
-            sigc::mem_fun(*this, &MainWindow::on_clear_state_button_clicked));
-    clear_state_button.set_sensitive(false);
+    execute_secd_button.signal_clicked().connect(
+            sigc::mem_fun(*this, &MainWindow::on_execute_secd_button_clicked));
 
     //прикрепление элементов к сетке
     grid.attach(code_window, 0, 0, 2, 1);
     grid.attach(execute_button, 0, 1);
-    grid.attach(clear_state_button, 1, 1);
+    grid.attach(execute_secd_button, 1, 1);
     grid.attach(result_window, 0, 2, 2, 1);
     //grid.attach(AST_window, 2, 0, 1, 3);
 
@@ -75,29 +74,26 @@ void MainWindow::on_execute_button_clicked() {
     (*interpreter).parse();
     if((*interpreter).is_error()){
         result_view.get_buffer()->set_text(result.str());
-        interpreter.restart();
     }
     else{
         result << "Generated from AST: " << (*interpreter).get_AST().print_tree() << std::endl;
         (*interpreter).execute();
-        result_view.get_buffer()->set_text(result.str());
         fill_AST_buffer();
-        if((*interpreter).is_error()){
-            interpreter.restart();
-        }
-        else{
-            execute_button.set_sensitive(false);
-            clear_state_button.set_sensitive(true);
-        }
     }
+    result_view.get_buffer()->set_text(result.str());
+    interpreter.restart();
 }
 
-void MainWindow::on_clear_state_button_clicked() {
-    interpreter.restart();
-    result_view.get_buffer()->set_text("");
-
-    execute_button.set_sensitive(true);
-    clear_state_button.set_sensitive(false);
+void MainWindow::on_execute_secd_button_clicked() {
+    auto text = std::string{code_view.get_buffer()->get_text()};
+    interpreter_input = std::istringstream{text};
+    std::stringstream result;
+    (*interpreter).switch_streams(&interpreter_input, &result);
+    (*interpreter).check_number_of_arguments = false;
+    (*interpreter).parse();
+    fill_AST_buffer();
+    (*interpreter).execute_secd();
+    result_view.get_buffer()->set_text(result.str());
 }
 
 void MainWindow::fill_AST_buffer() {

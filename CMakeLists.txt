@@ -14,7 +14,11 @@ find_package(BISON REQUIRED)
 find_package(argparse CONFIG REQUIRED)
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(GTKMM_LIB REQUIRED IMPORTED_TARGET gtkmm-4.0)
+pkg_check_modules(GTK4 REQUIRED gtk4)
+PKG_CHECK_MODULES(GTKMM gtkmm-4.0)
+
+include_directories(${GTK4_INCLUDE_DIRS})
+include_directories(${GTKMM_INCLUDE_DIRS})
 
 set(SRC_FILES src/interpreter.cpp src/main_window.cpp
         src/AST.cpp
@@ -38,5 +42,6 @@ add_executable(lispkit_compiler
 
 target_link_libraries(lispkit_compiler PRIVATE
         argparse::argparse
-        PkgConfig::GTKMM_LIB
+        ${GTK4_LIBRARIES}
+        ${GTKMM_LIBRARIES}
 )
