@@ -512,9 +512,9 @@ AST_node Interpreter::execute_secd_internal() {
     if(!AST.is_list()){
         throw report_runtime_error("SECD", AST, "");
     }
-    auto commands = AST;
     auto stack_node = AST_node{};
     auto enviroment = AST_node{};
+    auto commands = AST;
     auto dump_node = AST_node{};
     //secd - stack, enviroment, command, dump
     while(true){
@@ -530,15 +530,15 @@ AST_node Interpreter::execute_secd_internal() {
             throw std::runtime_error("SECD cant execute - commands is corrupted");
         }
         auto&& command_list = commands.to_list();
+        if(command_list.empty()){
+            throw std::runtime_error("SECD - The command stack is empty. Please check the program flow.");
+        }
         auto current = command_list.front();
         if(!current.is_string()){
             throw report_runtime_error("SECD", current, "command should be string");
         }
         auto command = current.to_string();
 
-        if(command_list.empty()){
-            throw std::runtime_error("SECD - The command stack is empty. Please check the program flow.");
-        }
         command_list.erase(command_list.begin());
         if(command == "STOP"){
             return stack_node;
@@ -557,8 +557,8 @@ AST_node Interpreter::execute_secd_internal() {
         else if(command == "SUB"){
             auto left = stack.front();
             stack.erase(stack.begin());
-            auto right = stack.front();;
-            stack.erase(stack.begin());;
+            auto right = stack.front();
+            stack.erase(stack.begin());
             if(!left.is_num() || !right.is_num()){
                 throw report_runtime_error("SECD", current, "arguments should be numbers");
             }
@@ -566,10 +566,10 @@ AST_node Interpreter::execute_secd_internal() {
             stack.push_front(right);
         }
         else if(command == "MUL"){
-            auto left = stack.front();;
-            stack.erase(stack.begin());;
-            auto right = stack.front();;
-            stack.erase(stack.begin());;
+            auto left = stack.front();
+            stack.erase(stack.begin());
+            auto right = stack.front();
+            stack.erase(stack.begin());
             if(!left.is_num() || !right.is_num()){
                 throw report_runtime_error("SECD", current, "arguments should be numbers");
             }
@@ -577,10 +577,10 @@ AST_node Interpreter::execute_secd_internal() {
             stack.push_front(left);
         }
         else if(command == "DIVE"){
-            auto left = stack.front();;
-            stack.erase(stack.begin());;
-            auto right = stack.front();;
-            stack.erase(stack.begin());;
+            auto left = stack.front();
+            stack.erase(stack.begin());
+            auto right = stack.front();
+            stack.erase(stack.begin());
             if(!left.is_num() || !right.is_num()){
                 throw report_runtime_error("SECD", current, "arguments should be numbers");
             }
@@ -588,10 +588,10 @@ AST_node Interpreter::execute_secd_internal() {
             stack.push_front(right);
         }
         else if(command == "REM"){
-            auto left = stack.front();;
-            stack.erase(stack.begin());;
-            auto right = stack.front();;
-            stack.erase(stack.begin());;
+            auto left = stack.front();
+            stack.erase(stack.begin());
+            auto right = stack.front();
+            stack.erase(stack.begin());
             if(!left.is_num() || !right.is_num()){
                 throw report_runtime_error("SECD", current, "arguments should be numbers");
             }
@@ -599,10 +599,10 @@ AST_node Interpreter::execute_secd_internal() {
             stack.push_front(right);
         }
         else if(command == "LEQ"){
-            auto left = stack.front();;
-            stack.erase(stack.begin());;
-            auto right = stack.front();;
-            stack.erase(stack.begin());;
+            auto left = stack.front();
+            stack.erase(stack.begin());
+            auto right = stack.front();
+            stack.erase(stack.begin());
             if(!left.is_num() || !right.is_num()){
                 throw report_runtime_error("SECD", current, "arguments should be numbers");
             }
@@ -614,10 +614,10 @@ AST_node Interpreter::execute_secd_internal() {
             }
         }
         else if(command == "EQ"){
-            auto left = stack.front();;
-            stack.erase(stack.begin());;
-            auto right = stack.front();;
-            stack.erase(stack.begin());;
+            auto left = stack.front();
+            stack.erase(stack.begin());
+            auto right = stack.front();
+            stack.erase(stack.begin());
             if(left.is_list() && right.is_list()){
                 throw report_runtime_error("SECD", current, "both arguments cant be lists");
             }
@@ -643,18 +643,18 @@ AST_node Interpreter::execute_secd_internal() {
             stack.push_front(constant);
         }
         else if(command == "ATOM"){
-            auto atom = stack.front();;
-            stack.erase(stack.begin());;
+            auto atom = stack.front();
+            stack.erase(stack.begin());
             if(atom.is_list())
                 stack.push_front(AST_node::FALSE());
             else
                 stack.push_front(AST_node::TRUE());
         }
         else if(command == "CONS"){
-            auto a = stack.front();;
-            stack.erase(stack.begin());;
-            auto b = stack.front();;
-            stack.erase(stack.begin());;
+            auto a = stack.front();
+            stack.erase(stack.begin());
+            auto b = stack.front();
+            stack.erase(stack.begin());
             if(!b.is_list()){
                 throw report_runtime_error("SECD CONS", current, "SECD CONS second argument must be list");
             }
@@ -662,8 +662,8 @@ AST_node Interpreter::execute_secd_internal() {
             stack.push_front(b);
         }
         else if(command == "CAR"){
-            auto list_node = stack.front();;
-            stack.erase(stack.begin());;
+            auto list_node = stack.front();
+            stack.erase(stack.begin());
             if(!list_node.is_list()){
                 throw report_runtime_error("SECD CAR", current, "CAR argument must be list");
             }
@@ -671,8 +671,8 @@ AST_node Interpreter::execute_secd_internal() {
             stack.push_front(list.front());
         }
         else if(command == "CDR"){
-            auto list_node = stack.front();;
-            stack.erase(stack.begin());;
+            auto list_node = stack.front();
+            stack.erase(stack.begin());
             if(!list_node.is_list()){
                 throw report_runtime_error("SECD CDR", current, "CDR argument must be list");
             }
@@ -732,8 +732,8 @@ AST_node Interpreter::execute_secd_internal() {
             auto false_branch = command_list.front();
             command_list.erase(command_list.begin());
 
-            auto condition = stack.front();;
-            stack.erase(stack.begin());;
+            auto condition = stack.front();
+            stack.erase(stack.begin());
 
             if(!condition.is_string()){
                 throw report_runtime_error("SECD SEL", current, "condition must be boolean");
