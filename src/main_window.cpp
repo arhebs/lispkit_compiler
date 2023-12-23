@@ -7,7 +7,8 @@
 MainWindow::MainWindow() :
         paned(Gtk::Orientation::HORIZONTAL),
         execute_button("Запустить интерпретатор"),
-        execute_secd_button("Запустить SECD-машину")
+        execute_secd_button("Запустить SECD-машину"),
+        interpreter(new yy::Interpreter)
 {
     set_title("Lispkit compiler");
     set_default_size(800, 600);
@@ -81,7 +82,7 @@ void MainWindow::on_execute_button_clicked() {
         fill_AST_buffer();
     }
     result_view.get_buffer()->set_text(result.str());
-    interpreter.restart();
+    interpreter = std::make_unique<yy::Interpreter>();
 }
 
 void MainWindow::on_execute_secd_button_clicked() {
@@ -94,6 +95,7 @@ void MainWindow::on_execute_secd_button_clicked() {
     fill_AST_buffer();
     (*interpreter).execute_secd();
     result_view.get_buffer()->set_text(result.str());
+    interpreter = std::make_unique<yy::Interpreter>();
 }
 
 void MainWindow::fill_AST_buffer() {

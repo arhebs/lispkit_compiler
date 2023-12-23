@@ -20,11 +20,6 @@ void Interpreter::increaseLocation(unsigned int loc, unsigned int lineno) {
     m_location += loc;
     m_column += loc;
     m_lineno = lineno;
-#ifdef NDEBUG
-    std::cout << "Current position: " << m_location << " symbol, "
-        << m_lineno << " line, "
-        << m_column << " column" << std::endl;
-#endif
 }
 
 void Interpreter::next_line() {
@@ -539,6 +534,7 @@ AST_node Interpreter::execute_secd_internal() {
             throw report_runtime_error("SECD", current, "command should be string");
         }
         auto command = current.to_string();
+
         if(command_list.empty()){
             throw std::runtime_error("SECD - The command stack is empty. Please check the program flow.");
         }

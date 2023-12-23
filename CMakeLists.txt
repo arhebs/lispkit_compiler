@@ -11,7 +11,6 @@ set(PARSER_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
-find_package(argparse CONFIG REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK4 REQUIRED gtk4)
@@ -22,7 +21,7 @@ include_directories(${GTKMM_INCLUDE_DIRS})
 
 set(SRC_FILES src/interpreter.cpp src/main_window.cpp
         src/AST.cpp
-        src/interpreter_manager.cpp)
+)
 
 set(LEXER_OUT "${PARSER_DIR}/lexer.cpp")
 set(PARSER_OUT "${PARSER_DIR}/parser.cpp")
@@ -41,7 +40,6 @@ add_executable(lispkit_compiler
 )
 
 target_link_libraries(lispkit_compiler PRIVATE
-        argparse::argparse
         ${GTK4_LIBRARIES}
         ${GTKMM_LIBRARIES}
 )

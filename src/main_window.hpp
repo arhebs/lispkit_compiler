@@ -8,10 +8,11 @@
 #include <sstream>
 #include <string>
 #include <stack>
+#include <memory>
 
 #include <gtkmm.h>
 
-#include "interpreter_manager.hpp"
+#include "interpreter.hpp"
 
 class MainWindow : public Gtk::Window {
 private:
@@ -30,9 +31,6 @@ protected:
     void on_execute_button_clicked();
 
     void on_execute_secd_button_clicked();
-
-    yy::interpreter_manager interpreter;
-    std::istringstream interpreter_input;
 
     //gui components
     Gtk::Grid grid;
@@ -57,6 +55,9 @@ protected:
 private:
     void fill_AST_buffer();
     void AST_traversal(AST_node& current, Gtk::TreeRow& parent_row);
+
+    std::unique_ptr<yy::Interpreter> interpreter;
+    std::istringstream interpreter_input;
 };
 
 
