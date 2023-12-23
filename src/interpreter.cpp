@@ -326,7 +326,8 @@ Interpreter::Interpreter(std::istream *inp)  :
             for(auto&& symbol : function_list){
                 if(!symbol.is_string())
                     throw report_runtime_error("LET", node, "character definition must be a string");
-                requered_symbols.insert(symbol.to_string());
+                if(!functions.contains(symbol.to_string()))
+                    requered_symbols.insert(symbol.to_string());
             }
             auto registrated_symbols = std::set<std::string>{};
             for(; iterator != list.end(); ++iterator) {
