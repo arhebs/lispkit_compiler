@@ -715,7 +715,7 @@ AST_node Interpreter::execute_secd_internal() {
             std::advance(first_iterator, x_num);
             auto&& first = *first_iterator;
             if(!first.is_list()){
-                throw report_runtime_error("SECD LD", current, "лень писать ошибку");
+                throw report_runtime_error("SECD LD", current, "env сломан");
             }
             auto&& first_list = first.to_list();
 
@@ -793,5 +793,149 @@ AST_node Interpreter::execute_secd_internal() {
             stack.push_front(ret);
         }
     }
+}
+
+void Interpreter::compile() {
+    try{
+        auto result = this->compile(AST, AST_node{});
+        (*output_stream) << '(' << result << " STOP)" <<  std::endl;
+    }
+    catch(const std::runtime_error& ex){
+        (*output_stream) << "Error in compiling: " << ex.what() << std::endl;
+        m_error = true;
+    }
+}
+
+std::string Interpreter::compile(AST_node &current, AST_node enviroment) {
+    std::stringstream result;
+    if(current.is_num())
+        throw report_runtime_error("compilation", current, "cant resolve ID");
+    else if(current.is_string()){
+        auto&& symbol_name = current.to_string();
+        if(!enviroment.is_list())
+            throw report_runtime_error("compilation", current, "bad env");
+        auto&& env_list = enviroment.to_list();
+        int i = 0;
+
+        //поиск переменной в окружении
+        for(auto&& internal_list : env_list){
+            if(!internal_list.is_list())
+                throw report_runtime_error("compilation", current, "bad env");
+            auto&& int_list = internal_list.to_list();
+            const AST_node symbol = AST_node{symbol_name};
+            auto find_result = std::find(int_list.begin(), int_list.end(), symbol);
+            if(find_result != int_list.end()) {
+                int j = std::distance(int_list.begin(), find_result);
+
+                result << "LD (" << i << ' ' << j << ')';
+                return result.str();
+            }
+            i++;
+        }
+        //если не нашли переменную то ошибка
+        throw report_runtime_error("ID", current, "using undeclared symbol");
+    }
+    //тут остались только списки
+
+    auto&& current_list = current.to_list();
+
+    auto&& command_node = current_list.front();
+    if(!command_node.is_string())
+        throw report_runtime_error("compilation", current, "command name must be string");
+    auto&& command = command_node.to_string();
+
+    if(command == "QUOTE"){
+        result << "LDC " << current_list.back().print_tree();
+    }
+    else if(command == "ADD" ||
+            command == "SUB" ||
+            command == "MUL" ||
+            command == "DIVE" ||
+            command == "REM" ||
+            command == "EQUAL" ||
+            command == "LEQ" ||
+            command == "CONS"
+    ){
+        auto iterator = current_list.begin(); ++iterator;
+        auto&& left = *iterator; ++iterator;
+        auto&& right = *iterator;
+        if(command == "CONS"){
+            result << compile(right, enviroment) << ' ' << compile(left, enviroment) << ' ';
+        }
+        else{
+            result << compile(left, enviroment) << ' ' << compile(right, enviroment) << ' ';
+        }
+        if(command == "EQUAL"){
+            result << "EQ";
+        }
+        else{
+            result << command;
+        }
+    }
+    else if(command == "ATOM" ||
+            command == "CAR" ||
+            command == "CDR"
+    ){
+        auto&& argument = current_list.back();
+        result << compile(argument, enviroment) << ' ' << command;
+    }
+    else if(command == "COND"){
+        auto iterator = current_list.begin(); ++iterator;
+        auto&& condition = *iterator; ++iterator;
+        auto&& true_branch = *iterator; ++iterator;
+        auto&& false_branch = *iterator;
+        result << compile(condition, enviroment)
+               << " SEL "
+               << '(' << compile(true_branch, enviroment) << " JOIN) "
+               << '(' << compile(false_branch, enviroment) << " JOIN)";
+    }
+    else if(command == "LAMBDA"){
+        auto iterator = current_list.begin(); ++iterator;
+        auto&& lambda_arguments = *iterator; ++iterator;
+        auto&& lambda_body = *iterator;
+
+        enviroment.to_list().push_front(lambda_arguments);
+
+        result << "LDF (" << compile(lambda_body, enviroment) << " RTN)";
+    }
+    else if(command == "LET"){
+        //(LET (ADD X Y) (X (QUOTE 5)) (Y (QUOTE 4)))
+        auto arguments_end = current_list.rend(); arguments_end--; arguments_end--;
+        result << "LDC () ";
+        auto new_enviroment = AST_node{};
+        auto&& new_enviroment_list = new_enviroment.to_list();
+        for(auto arg_iterator = current_list.rbegin();
+            arg_iterator != arguments_end;
+            ++arg_iterator
+        ){
+            auto&& pair_list = arg_iterator->to_list();
+            result << compile(pair_list.back(), enviroment) << " CONS ";
+            new_enviroment_list.push_front(pair_list.front());
+        }
+        //добавили вычисление аргументов, занесли их в контекст..
+        //а, не занесли еще
+        //значит надо!
+        enviroment.to_list().push_front(new_enviroment);
+
+        auto function_node = current_list.begin(); ++function_node;
+        //здесь уже окружение изменено
+        result << "LDF (" << compile(*function_node, enviroment) << " RTN) AP";
+    }
+    else{ //вызов функции
+        result << "LDC () ";
+        bool is_first = true;
+        for(auto&& item : current_list | std::views::reverse){
+            if(!is_first)
+                result << "CONS ";
+            result << compile(item, enviroment) << ' ';
+            is_first = false;
+        }
+        result << "AP";
+    }
+
+
+    return result.str();
+
+
 }
 

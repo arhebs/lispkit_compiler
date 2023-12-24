@@ -27,10 +27,12 @@ private:
 public:
     explicit MainWindow();
     ~MainWindow() override = default;
+    void on_compile_button_clicked();
 protected:
     void on_execute_button_clicked();
 
     void on_execute_secd_button_clicked();
+
 
     //gui components
     Gtk::Grid grid;
@@ -51,6 +53,7 @@ protected:
 
     Gtk::Button execute_button;
     Gtk::Button execute_secd_button;
+    Gtk::Button compile_button;
 
 private:
     void fill_AST_buffer();

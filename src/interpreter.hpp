@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <functional>
 #include <stack>
+#include <ranges>
+#include <iterator>
 
 #include "AST.hpp"
 
@@ -65,10 +67,13 @@ public:
 
     void execute_secd();
 
+    void compile();
+
     bool check_number_of_arguments;
 private:
     using command = std::function<AST_node(AST_node&, std::unordered_map<std::string, AST_node>)>;
     using context_t = std::unordered_map<std::string, AST_node>;
+    using enviroment_t = std::list<std::list<std::string>>;
     // Used internally by Scanner YY_USER_ACTION to update location indicator
     void increaseLocation(unsigned int loc, unsigned int lineno);
 
@@ -82,6 +87,8 @@ private:
     AST_node execute(AST_node& current, std::unordered_map<std::string, AST_node> context);
 
     AST_node execute_secd_internal();
+
+    std::string compile(AST_node& current, AST_node enviroment);
 
     bool is_existing_symbol(const std::string& symbol, const context_t& context);
 

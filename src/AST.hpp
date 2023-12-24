@@ -39,6 +39,8 @@ struct AST_node{
     explicit AST_node(num_t num);
     explicit AST_node(); // list
 
+    bool operator==(const AST_node&) const = default;
+
 #undef TRUE
 #undef FALSE
     static AST_node TRUE();

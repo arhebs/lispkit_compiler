@@ -8,6 +8,7 @@ MainWindow::MainWindow() :
         paned(Gtk::Orientation::HORIZONTAL),
         execute_button("Запустить интерпретатор"),
         execute_secd_button("Запустить SECD-машину"),
+        compile_button("Скомпилировать Lisp-Kit в код SECD-машины"),
         interpreter(new yy::Interpreter)
 {
     set_title("Lispkit compiler");
@@ -43,12 +44,15 @@ MainWindow::MainWindow() :
             sigc::mem_fun(*this, &MainWindow::on_execute_button_clicked));
     execute_secd_button.signal_clicked().connect(
             sigc::mem_fun(*this, &MainWindow::on_execute_secd_button_clicked));
+    compile_button.signal_clicked().connect(
+            sigc::mem_fun(*this, &MainWindow::on_compile_button_clicked));
 
     //прикрепление элементов к сетке
     grid.attach(code_window, 0, 0, 2, 1);
     grid.attach(execute_button, 0, 1);
     grid.attach(execute_secd_button, 1, 1);
-    grid.attach(result_window, 0, 2, 2, 1);
+    grid.attach(compile_button, 0, 2, 2, 1);
+    grid.attach(result_window, 0, 4, 2, 1);
     //grid.attach(AST_window, 2, 0, 1, 3);
 
     //изначально углы скругленные, хочу квадратные
@@ -94,6 +98,19 @@ void MainWindow::on_execute_secd_button_clicked() {
     (*interpreter).parse();
     fill_AST_buffer();
     (*interpreter).execute_secd();
+    result_view.get_buffer()->set_text(result.str());
+    interpreter = std::make_unique<yy::Interpreter>();
+}
+
+void MainWindow::on_compile_button_clicked() {
+    auto text = std::string{code_view.get_buffer()->get_text()};
+    interpreter_input = std::istringstream{text};
+    std::stringstream result;
+    (*interpreter).switch_streams(&interpreter_input, &result);
+    (*interpreter).check_number_of_arguments = false;
+    (*interpreter).parse();
+    fill_AST_buffer();
+    (*interpreter).compile();
     result_view.get_buffer()->set_text(result.str());
     interpreter = std::make_unique<yy::Interpreter>();
 }
